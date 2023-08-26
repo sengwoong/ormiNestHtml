@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Button Timing</title>
+</head>
+<body>
+  <button id="startButton">Start</button>
+  <button id="endButton" disabled>End</button>
+
+  <script src="https://unpkg.com/@reactivex/rxjs/dist/global/rxjs.umd.js"></script>
+  <script>
+    const { fromEvent } = rxjs;
+    const { filter, throttleTime,map } = rxjs.operators;
+
+    const startButton = document.getElementById('startButton');
+    const endButton = document.getElementById('endButton');
+
+    const startClick$ = fromEvent(startButton, 'click');
+    const endClick$ = fromEvent(endButton, 'click');
+
+    let actionPush = fromEvent(document, 'keydown').pipe(
+      filter(event => event.key === 'a' || event.key === 's' || event.key === 'w' || event.key === 'd'),
+      throttleTime(300)
+    );
+
+    const action$ = actionPush.pipe(
+      filter(() => !endButton.disabled)
+    );
+
+    startClick$.subscribe(() => {
+      endButton.removeAttribute('disabled');
+    });
+
+    const start$ = startClick$.pipe(
+      map(() => Date.now())
+    );
+
+    const KeyPushTime = start$.subscribe(startTime => {
+      action$.subscribe(action => {
+        let actionTime =  Date.now()
+        console.log(action)
+        const elapsedSeconds = Math.floor((actionTime - startTime) / 1000);
+        console.log(`${elapsedSeconds}초 후에 작동됩니다.`);
+        console.log(`${action.key}키값입니다.`);
+      });
+    });
+
+    endClick$.subscribe(() => {
+      endButton.setAttribute('disabled', true);
+      KeyPushTime.unsubscribe();
+    });
+  </script>
+</body>
+</html>

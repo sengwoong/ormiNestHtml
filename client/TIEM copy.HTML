@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Button Timing</title>
+</head>
+<body>
+  <button id="startButton">Start</button>
+  <button id="actionButton" disabled>Action</button>
+  <button id="endButton" disabled>End</button>
+<script src="https://unpkg.com/@reactivex/rxjs/dist/global/rxjs.umd.js"></script>
+  <script>
+    const { fromEvent, interval } = rxjs;
+
+const { take, map } = rxjs.operators;
+    const startButton = document.getElementById('startButton');
+    const actionButton = document.getElementById('actionButton');
+    const endButton = document.getElementById('endButton');
+    const startClick$ = fromEvent(startButton, 'click');
+    const actionClick$ = fromEvent(actionButton, 'click');
+    
+
+    
+
+    startClick$.subscribe(() => {
+        actionButton.removeAttribute('disabled');
+      endButton.removeAttribute('disabled');
+    });
+
+    //스타트클릭을 눌렀을떄 가작 최근값을가져옴
+    const start$ = startClick$.pipe(
+      map(() => Date.now())
+    );
+
+    //엑티브클릭을 눌렀을떄 가장 최근값을가져옴
+    const action$ = actionClick$.pipe(
+      map(() => Date.now())
+    );
+
+
+
+const KeyPushTime = start$.subscribe
+(startTime => {
+      action$.subscribe(actionTime => {
+        const elapsedSeconds = Math.floor((actionTime - startTime) / 1000);
+        console.log(startTime)
+        console.log(actionTime)
+        console.log(`${elapsedSeconds}초 후에 작동됩니다.`);
+      });
+    });
+
+
+
+        endButton.onclick=()=>{
+       
+      
+            endButton.setAttribute('disabled', true);
+      actionButton.setAttribute('disabled', true);
+
+      KeyPushTime.unsubscribe();
+        console.log("시작 버튼 구독 취소");
+
+
+   
+        }
+    
+
+</script>
+
+
+
+
+
+
+
+</body>
+</html>
